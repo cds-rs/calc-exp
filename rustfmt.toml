@@ -1,0 +1,7 @@
+# Reduce max width to force trait bounds to wrap
+max_width = 80
+use_small_heuristics = "Off"
+
+# Use 2021 style edition for better formatting
+style_edition = "2024"
+edition = "2021"
