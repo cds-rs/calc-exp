@@ -4,12 +4,38 @@ use std::fmt;
 use std::io::{self, Write};
 use std::sync::LazyLock;
 
+use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, PrimInt};
+
+trait IntegerOps:
+    PrimInt
+    + CheckedAdd
+    + CheckedSub
+    + CheckedMul
+    + CheckedDiv
+    + fmt::Debug
+    + fmt::Display
+    + fmt::Binary
+{
+}
+
+impl<T> IntegerOps for T where
+    T: PrimInt
+        + CheckedAdd
+        + CheckedSub
+        + CheckedMul
+        + CheckedDiv
+        + fmt::Debug
+        + fmt::Display
+        + fmt::Binary
+{
+}
+
 struct Calculator<T> {
     op1: T,
     op2: T,
 }
 
-impl<T: std::str::FromStr + fmt::Display> Calculator<T> {
+impl<T: IntegerOps + std::str::FromStr> Calculator<T> {
     fn parse(a: &str, b: &str) -> Result<Self, String> {
         let op1 = a
             .parse()
@@ -21,9 +47,47 @@ impl<T: std::str::FromStr + fmt::Display> Calculator<T> {
     }
 }
 
-impl<T: fmt::Display> fmt::Display for Calculator<T> {
+impl<T: IntegerOps> Calculator<T> {
+    fn add(&self) -> Option<T> {
+        self.op1.checked_add(&self.op2)
+    }
+
+    fn sub(&self) -> Option<T> {
+        self.op1.checked_sub(&self.op2)
+    }
+
+    fn mul(&self) -> Option<T> {
+        self.op1.checked_mul(&self.op2)
+    }
+
+    fn div(&self) -> Option<T> {
+        self.op1.checked_div(&self.op2)
+    }
+
+    fn and(&self) -> T {
+        self.op1 & self.op2
+    }
+
+    fn or(&self) -> T {
+        self.op1 | self.op2
+    }
+
+    fn xor(&self) -> T {
+        self.op1 ^ self.op2
+    }
+}
+
+impl<T: IntegerOps> fmt::Display for Calculator<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Calculator({}, {})", self.op1, self.op2)
+        writeln!(f, "{} + {} = {:?}", self.op1, self.op2, self.add())?;
+        writeln!(f, "{} - {} = {:?}", self.op1, self.op2, self.sub())?;
+        writeln!(f, "{} * {} = {:?}", self.op1, self.op2, self.mul())?;
+        writeln!(f, "{} / {} = {:?}", self.op1, self.op2, self.div())?;
+
+        let bits = std::mem::size_of::<T>() * 8 + 2;
+        writeln!(f, "{:#0w$b} & {:#0w$b} = {:#0w$b}", self.op1, self.op2, self.and(), w = bits)?;
+        writeln!(f, "{:#0w$b} | {:#0w$b} = {:#0w$b}", self.op1, self.op2, self.or(), w = bits)?;
+        write!(f, "{:#0w$b} ^ {:#0w$b} = {:#0w$b}", self.op1, self.op2, self.xor(), w = bits)
     }
 }
 
@@ -49,7 +113,7 @@ static TYPES: LazyLock<HashMap<&'static str, ParseFn>> = LazyLock::new(|| {
     ])
 });
 
-impl<T: std::str::FromStr + fmt::Display> Calculator<T> {
+impl<T: IntegerOps + std::str::FromStr> Calculator<T> {
     fn parse_and_display(a: &str, b: &str) -> Result<String, String> {
         let calc = Self::parse(a, b)?;
         Ok(calc.to_string())
