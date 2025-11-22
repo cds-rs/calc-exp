@@ -1,3 +1,4 @@
+use std::any::type_name;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::{self, Write};
@@ -10,8 +11,12 @@ struct Calculator<T> {
 
 impl<T: std::str::FromStr + fmt::Display> Calculator<T> {
     fn parse(a: &str, b: &str) -> Result<Self, String> {
-        let op1 = a.parse().map_err(|_| format!("Invalid first number: {}", a))?;
-        let op2 = b.parse().map_err(|_| format!("Invalid second number: {}", b))?;
+        let op1 = a
+            .parse()
+            .map_err(|_| format!("{} cannot hold {}", type_name::<T>(), a))?;
+        let op2 = b
+            .parse()
+            .map_err(|_| format!("{} cannot hold {}", type_name::<T>(), b))?;
         Ok(Calculator { op1, op2 })
     }
 }
