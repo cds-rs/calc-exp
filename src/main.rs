@@ -7,9 +7,7 @@ fn read_command() -> Option<Command> {
     io::stdout().flush().expect("Failed to flush stdout");
 
     let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
+    io::stdin().read_line(&mut input).expect("Failed to read line");
 
     let input = input.trim();
 
@@ -31,12 +29,12 @@ fn read_command() -> Option<Command> {
         None => (*first, "u8"),
     };
 
-    let Some(parse_fn) = TYPES.get(type_name) else {
+    let Some(fn_parse_and_display) = TYPES.get(type_name) else {
         println!("Unknown type: {}", type_name);
         return None;
     };
 
-    match parse_fn(num1, second) {
+    match fn_parse_and_display(num1, second) {
         Ok(output) => Some(Command::Calculate(output)),
         Err(e) => {
             println!("{}", e);

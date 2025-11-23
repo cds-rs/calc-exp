@@ -12,6 +12,7 @@ pub struct Calculator<T> {
 }
 
 // Compile-time layout assertions
+// TODO: remove me
 const_assert_eq!(std::mem::size_of::<Calculator<i8>>(), 2);
 const_assert_eq!(std::mem::size_of::<Calculator<i16>>(), 4);
 const_assert_eq!(std::mem::size_of::<Calculator<i32>>(), 8);
@@ -31,7 +32,10 @@ impl<T: IntegerOps + std::str::FromStr> Calculator<T> {
         let op2 = b
             .parse()
             .map_err(|_| format!("{} cannot hold {}", type_name::<T>(), b))?;
-        Ok(Calculator { op1, op2 })
+        Ok(Calculator {
+            op1,
+            op2,
+        })
     }
 }
 
@@ -75,12 +79,24 @@ impl<T: IntegerOps> fmt::Display for Calculator<T> {
         let bits = std::mem::size_of::<T>() * 8;
         let hex_w = std::mem::size_of::<T>() * 2 + 2;
 
-        for (op_symbol, result) in [("&", self.and()), ("|", self.or()), ("^", self.xor())] {
-            writeln!(f, "\n  {} ({:#0hw$X}) ({})\n{} {} ({:#0hw$X}) ({})\n= {} ({:#0hw$X}) ({})",
-                format_binary(self.op1, bits), self.op1, self.op1,
+        for (op_symbol, result) in
+            [("&", self.and()), ("|", self.or()), ("^", self.xor())]
+        {
+            writeln!(
+                f,
+                "\n  {} ({:#0hw$X}) ({})\n{} {} ({:#0hw$X}) ({})\n= {} ({:#0hw$X}) ({})",
+                format_binary(self.op1, bits),
+                self.op1,
+                self.op1,
                 op_symbol,
-                format_binary(self.op2, bits), self.op2, self.op2,
-                format_binary(result, bits), result, result, hw = hex_w)?;
+                format_binary(self.op2, bits),
+                self.op2,
+                self.op2,
+                format_binary(result, bits),
+                result,
+                result,
+                hw = hex_w
+            )?;
         }
         Ok(())
     }
