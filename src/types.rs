@@ -10,6 +10,12 @@ pub enum Command {
 
 pub type ParseFn = fn(&str, &str) -> Result<String, String>;
 
+// Q: what are the alternatives and their effects?
+// how does memory layout change? The docs suggest LazyLock leaves
+// this memory to be cleaned up by the OS. I assume this isn't good
+// for system resources?
+//
+// this could be a match in main, or initializing a hashmap as below.
 pub static TYPES: LazyLock<HashMap<&'static str, ParseFn>> =
     LazyLock::new(|| {
         HashMap::from([
