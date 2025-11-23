@@ -1,6 +1,13 @@
-use std::io::{self, Write};
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
 
-use calc::{Command, TYPES};
+use std::collections::HashMap;
+use std::io::{self, Write};
+use std::sync::LazyLock;
+
+use memoffset::offset_of;
+
+use calc::{Calculator, Command, ParseFn, TYPES};
 
 fn read_command() -> Option<Command> {
     print!("> ");
@@ -46,6 +53,48 @@ fn read_command() -> Option<Command> {
 }
 
 fn main() {
+    let _profiler = dhat::Profiler::new_heap();
+
+    // Print type layouts
+    println!("=== Type Layouts ===\n");
+
+    macro_rules! print_calc_layout {
+        ($t:ty, $name:expr) => {
+            println!("Calculator<{}>:", $name);
+            println!("  size:  {} bytes", std::mem::size_of::<Calculator<$t>>());
+            println!("  align: {} bytes", std::mem::align_of::<Calculator<$t>>());
+            println!("  op1:   offset {}, size {}", offset_of!(Calculator<$t>, op1), std::mem::size_of::<$t>());
+            println!("  op2:   offset {}, size {}\n", offset_of!(Calculator<$t>, op2), std::mem::size_of::<$t>());
+        };
+    }
+
+    print_calc_layout!(i8, "i8");
+    print_calc_layout!(i16, "i16");
+    print_calc_layout!(i32, "i32");
+    print_calc_layout!(i64, "i64");
+    print_calc_layout!(i128, "i128");
+    print_calc_layout!(u8, "u8");
+    print_calc_layout!(u16, "u16");
+    print_calc_layout!(u32, "u32");
+    print_calc_layout!(u64, "u64");
+    print_calc_layout!(u128, "u128");
+
+    println!("TYPES (HashMap<&str, ParseFn>):");
+    println!("  size:  {} bytes", std::mem::size_of_val(&*TYPES));
+    println!("  align: {} bytes\n", std::mem::align_of_val(&*TYPES));
+
+    println!("LazyLock<HashMap<...>>:");
+    println!("  size:  {} bytes", std::mem::size_of::<LazyLock<HashMap<&'static str, ParseFn>>>());
+    println!("  align: {} bytes\n", std::mem::align_of::<LazyLock<HashMap<&'static str, ParseFn>>>());
+
+    println!("Entry (&'static str, ParseFn):");
+    println!("  &str size:   {} bytes", std::mem::size_of::<&'static str>());
+    println!("  ParseFn size: {} bytes", std::mem::size_of::<ParseFn>());
+    println!("  total per entry: {} bytes\n",
+        std::mem::size_of::<&'static str>() + std::mem::size_of::<ParseFn>());
+
+    println!("===================\n");
+
     println!("Calcy REPL");
     println!("Usage: <num>_<type> <num>  (e.g., 10_i32 20)");
     println!("       .quit to exit");
