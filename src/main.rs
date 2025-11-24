@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use calc::{Command, TYPES};
+use calc::{CalculatorType, Command, get_function};
 
 fn read_command() -> Option<Command> {
     print!("> ");
@@ -29,10 +29,15 @@ fn read_command() -> Option<Command> {
         None => (*first, "u8"),
     };
 
-    let Some(fn_parse_and_display) = TYPES.get(type_name) else {
-        println!("Unknown type: {}", type_name);
-        return None;
+    let calc_type: CalculatorType = match type_name.parse() {
+        Ok(t) => t,
+        Err(_) => {
+            println!("Unknown type: {}", type_name);
+            return None;
+        }
     };
+
+    let fn_parse_and_display = get_function(calc_type);
 
     match fn_parse_and_display(num1, second) {
         Ok(output) => Some(Command::Calculate(output)),

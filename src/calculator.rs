@@ -5,6 +5,7 @@ use static_assertions::const_assert_eq;
 
 use crate::format::format_binary;
 use crate::traits::IntegerOps;
+use crate::types::{CalculatorType, ParseFn};
 
 pub struct Calculator<T> {
     pub op1: T,
@@ -106,5 +107,20 @@ impl<T: IntegerOps + std::str::FromStr> Calculator<T> {
     pub fn parse_and_display(a: &str, b: &str) -> Result<String, String> {
         let calc = Self::parse(a, b)?;
         Ok(calc.to_string())
+    }
+}
+
+pub fn get_function(int_type: CalculatorType) -> ParseFn {
+    match int_type {
+        CalculatorType::I8 => Calculator::<i8>::parse_and_display as ParseFn,
+        CalculatorType::I16 => Calculator::<i16>::parse_and_display as ParseFn,
+        CalculatorType::I32 => Calculator::<i32>::parse_and_display as ParseFn,
+        CalculatorType::I64 => Calculator::<i64>::parse_and_display as ParseFn,
+        CalculatorType::I128 => Calculator::<i128>::parse_and_display as ParseFn,
+        CalculatorType::U8 => Calculator::<u8>::parse_and_display as ParseFn,
+        CalculatorType::U16 => Calculator::<u16>::parse_and_display as ParseFn,
+        CalculatorType::U32 => Calculator::<u32>::parse_and_display as ParseFn,
+        CalculatorType::U64 => Calculator::<u64>::parse_and_display as ParseFn,
+        CalculatorType::U128 => Calculator::<u128>::parse_and_display as ParseFn,
     }
 }

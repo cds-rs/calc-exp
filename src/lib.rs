@@ -3,7 +3,7 @@ pub mod format;
 pub mod traits;
 pub mod types;
 
-pub use calculator::Calculator;
+pub use calculator::{get_function, Calculator};
 pub use format::format_binary;
 pub use traits::IntegerOps;
-pub use types::{Command, ParseFn, TYPES};
+pub use types::{CalculatorType, Command, ParseFn};

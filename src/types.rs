@@ -1,33 +1,23 @@
-use std::collections::HashMap;
-use std::sync::LazyLock;
-
-use crate::calculator::Calculator;
+use strum::EnumString;
 
 pub enum Command {
     Quit,
     Calculate(String),
 }
 
-pub type ParseFn = fn(&str, &str) -> Result<String, String>;
+#[derive(EnumString)]
+#[strum(serialize_all = "lowercase")]
+pub enum CalculatorType {
+    I8,
+    I16,
+    I32,
+    I64,
+    I128,
+    U8,
+    U16,
+    U32,
+    U64,
+    U128,
+}
 
-// Q: what are the alternatives and their effects?
-// how does memory layout change? The docs suggest LazyLock leaves
-// this memory to be cleaned up by the OS. I assume this isn't good
-// for system resources?
-//
-// this could be a match in main, or initializing a hashmap as below.
-pub static TYPES: LazyLock<HashMap<&'static str, ParseFn>> =
-    LazyLock::new(|| {
-        HashMap::from([
-            ("i8", Calculator::<i8>::parse_and_display as ParseFn),
-            ("i16", Calculator::<i16>::parse_and_display as ParseFn),
-            ("i32", Calculator::<i32>::parse_and_display as ParseFn),
-            ("i64", Calculator::<i64>::parse_and_display as ParseFn),
-            ("i128", Calculator::<i128>::parse_and_display as ParseFn),
-            ("u8", Calculator::<u8>::parse_and_display as ParseFn),
-            ("u16", Calculator::<u16>::parse_and_display as ParseFn),
-            ("u32", Calculator::<u32>::parse_and_display as ParseFn),
-            ("u64", Calculator::<u64>::parse_and_display as ParseFn),
-            ("u128", Calculator::<u128>::parse_and_display as ParseFn),
-        ])
-    });
+pub type ParseFn = fn(&str, &str) -> Result<String, String>;
