@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use calc::{CalculatorType, Command, get_function};
+use calc::{CalculatorType, Command, get_typed_function};
 
 fn read_command() -> Option<Command> {
     print!("> ");
@@ -15,37 +15,28 @@ fn read_command() -> Option<Command> {
         return Some(Command::Quit);
     }
 
-    let parts: Vec<&str> = input.split_whitespace().collect();
-    let [first, second] = parts.as_slice() else {
+    let mut parts = input.split_whitespace();
+    let (Some(num1_plus_type), Some(num2), None) =
+        (parts.next(), parts.next(), parts.next())
+    else {
         if !input.is_empty() {
             println!("Usage: <num>_<type> <num>");
         }
         return None;
     };
 
-    // Extract type suffix from first number, default to u8
-    let (num1, type_name) = match first.rsplit_once('_') {
-        Some((num, typ)) => (num, typ),
-        None => (*first, "u8"),
+    let (num1, type_name) =
+        num1_plus_type.rsplit_once('_').unwrap_or((num1_plus_type, "u8"));
+
+    let Ok(calc_type) = type_name.parse::<CalculatorType>() else {
+        println!("Unknown type: {type_name}");
+        return None;
     };
 
-    let calc_type: CalculatorType = match type_name.parse() {
-        Ok(t) => t,
-        Err(_) => {
-            println!("Unknown type: {}", type_name);
-            return None;
-        }
-    };
-
-    let fn_parse_and_display = get_function(calc_type);
-
-    match fn_parse_and_display(num1, second) {
-        Ok(output) => Some(Command::Calculate(output)),
-        Err(e) => {
-            println!("{}", e);
-            None
-        }
-    }
+    get_typed_function(calc_type)(num1, num2)
+        .map(Command::Calculate)
+        .inspect_err(|e| println!("{e}"))
+        .ok()
 }
 
 fn main() {
